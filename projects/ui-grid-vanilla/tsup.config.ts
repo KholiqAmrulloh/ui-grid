@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { defineConfig } from 'tsup';
 import { scssInlineEsbuild } from './scss-plugin';
 
@@ -20,6 +21,12 @@ export default defineConfig([
     outExtension: () => ({ js: '.js' }),
     tsconfig: './tsconfig.json',
     noExternal: ['@ornery/ui-grid-core'],
+    esbuildOptions(options) {
+      options.alias = {
+        ...options.alias,
+        '@ornery/ui-grid-core': path.resolve(__dirname, '../ui-grid-core/dist/index.mjs'),
+      };
+    },
     esbuildPlugins: [scssInlineEsbuild()],
   },
 ]);

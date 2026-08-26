@@ -1,5 +1,17 @@
 # Changelog
 
+## v5.0.1 — 2026-08-25
+
+### Fixed
+
+- **Selection and expandable-row clicks with WASM enabled** — row lookup now preserves the live `GridRow` instance instead of returning a deserialized copy, so selection checkboxes select and deselect rows and disclosure arrows expand and collapse details independently.
+- **Selection and expandable control placement** — local browser bundles use the freshly compiled workspace core, keeping expandable toggles in the first data column and selection controls in the synthetic row-header column.
+- **Release lock metadata** — version synchronization no longer relabels registry-resolved package entries without updating their tarball URL and integrity metadata.
+
+### Changed
+
+- **Local package resolution** — standalone Angular, React, and Vanilla development metadata links sibling workspace packages while preserving exact `5.0.1` dependencies and peers for published consumers.
+
 ## v5.0.0 — 2026-08-12
 
 `v5.0.0` is the first release from the transferred `orneryd/ui-grid` repository. It replaces the legacy AngularJS code on `main` with the modern web suite previously developed in `orneryd/uiGrid`. The final legacy release remains available as `v4.12.7`, and its source is preserved on the `angular-1-archive` branch.

@@ -86,7 +86,11 @@ function updatePackageLock(filePath) {
       if (!pkg || typeof pkg !== 'object') continue;
 
       const inferredName = inferPackageName(pkgPath, pkg);
-      if (inferredName && internalPackages.includes(inferredName)) {
+      if (
+        inferredName &&
+        internalPackages.includes(inferredName) &&
+        (pkgPath === '' || pkg.link === true)
+      ) {
         pkg.version = targetVersion;
       }
 

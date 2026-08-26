@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { clearRustWasmGridEngine } from '@ornery/ui-grid-core';
+import { clearRustWasmGridEngine, initWasmCore } from '@ornery/ui-grid-core';
 
 import {
   mountVanillaUiGrid,
@@ -89,7 +89,7 @@ async function mountGrid(options: GridOptions): Promise<{
   const target = document.getElementById('app')!;
   const grid = await mountVanillaUiGrid(target, options, undefined, TAG);
   const shadow = await waitFor(() => grid.shadowRoot);
-  await waitFor(() => shadow.querySelector('.body-cell[data-row="r1"][data-column="name"]'));
+  await waitFor(() => shadow.querySelector('.body-cell[data-column="name"]'));
   return { grid, shadow };
 }
 
@@ -214,11 +214,7 @@ describe('cell selection state retention', () => {
     // the cell entirely.
     const projected = document.createElement('span');
     projected.className = 'projected-cell';
-    const path: EventTarget[] = [
-      projected,
-      targetCell,
-      shadow,
-    ];
+    const path: EventTarget[] = [projected, targetCell, shadow];
     const event = new MouseEvent('click', {
       bubbles: true,
       cancelable: true,
@@ -260,8 +256,7 @@ describe('row selection + expand patch correctness', () => {
     return baseOptions({
       enableRowSelection: true,
       enableExpandable: true,
-      expandableRowTemplate:
-        template as unknown as GridOptions['expandableRowTemplate'],
+      expandableRowTemplate: template as unknown as GridOptions['expandableRowTemplate'],
     });
   }
 
@@ -387,9 +382,7 @@ describe('row selection + expand patch correctness', () => {
     const options = selectionExpandOptions();
     options.enableCellEdit = true;
     options.columnDefs = options.columnDefs.map((c) =>
-      c.name === 'name'
-        ? { ...c, enableCellEdit: true, validators: { required: true } }
-        : c,
+      c.name === 'name' ? { ...c, enableCellEdit: true, validators: { required: true } } : c,
     );
 
     const { shadow } = await mountGrid(options);
@@ -405,15 +398,38 @@ describe('row selection + expand patch correctness', () => {
     await waitFor(() =>
       shadow.querySelector('.body-cell[data-row="r1"][data-column="name"].ui-grid-cell-invalid'),
     );
-    expect(
-      cellIn(shadow, 'r1', 'name').classList.contains('ui-grid-cell-invalid'),
-    ).toBe(true);
+    expect(cellIn(shadow, 'r1', 'name').classList.contains('ui-grid-cell-invalid')).toBe(true);
     // Other rows / columns must NOT be flagged.
-    expect(
-      cellIn(shadow, 'r1', 'status').classList.contains('ui-grid-cell-invalid'),
-    ).toBe(false);
-    expect(
-      cellIn(shadow, 'r2', 'name').classList.contains('ui-grid-cell-invalid'),
-    ).toBe(false);
+    expect(cellIn(shadow, 'r1', 'status').classList.contains('ui-grid-cell-invalid')).toBe(false);
+    expect(cellIn(shadow, 'r2', 'name').classList.contains('ui-grid-cell-invalid')).toBe(false);
+  });
+
+  it('keeps selection and expansion clicks independent with WASM active', async () => {
+    await initWasmCore();
+    const options = selectionExpandOptions();
+    options.rowIdentity = undefined;
+    const { shadow } = await mountGrid(options);
+    const api = getApi(options);
+    const rowId = `${options.id}-0`;
+    const expandToggle = (): HTMLElement => {
+      const toggle = cellIn(shadow, rowId, 'name').querySelector<HTMLElement>('.row-toggle-expand');
+      if (!toggle) throw new Error('Expand toggle was not rendered in the primary data column');
+      return toggle;
+    };
+
+    dispatchClick(cellIn(shadow, rowId, 'selectionRowHeaderCol'));
+    await waitFor(() => (api.selection.getSelectedCount() === 1 ? {} : null));
+    expect(api.selection.getSelectedRows()[0]?.['id']).toBe('r1');
+
+    dispatchClick(cellIn(shadow, rowId, 'selectionRowHeaderCol'));
+    await waitFor(() => (api.selection.getSelectedCount() === 0 ? {} : null));
+
+    dispatchClick(expandToggle());
+    await waitFor(() => shadow.querySelector('.expandable-row'));
+    expect(api.selection.getSelectedCount()).toBe(0);
+
+    dispatchClick(expandToggle());
+    await waitFor(() => (shadow.querySelector('.expandable-row') === null ? {} : null));
+    expect(api.selection.getSelectedCount()).toBe(0);
   });
 });

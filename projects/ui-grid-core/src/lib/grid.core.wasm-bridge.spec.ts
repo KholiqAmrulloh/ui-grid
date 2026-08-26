@@ -4,10 +4,12 @@ import { GridRow } from './grid.models';
 import {
   clearGridFilterReasons,
   configureWasmSerializationAudit,
+  findGridRowById,
   headerLabel,
   initWasmCore,
   inspectWasmSerializationPayload,
   matchesGridRowFilters,
+  resolveGridRowId,
 } from './grid.core.wasm-bridge';
 
 describe('grid.core.wasm-bridge filtering/display helpers', () => {
@@ -24,6 +26,19 @@ describe('grid.core.wasm-bridge filtering/display helpers', () => {
 
     expect([...row.invisibleReasons]).toEqual(['group:team']);
     expect(row.visible).toBe(false);
+  });
+
+  it('findGridRowById returns the live GridRow instance', () => {
+    const row = new GridRow('row-1', { name: 'Alice' }, 0);
+
+    expect(findGridRowById([row], row.id)).toBe(row);
+  });
+
+  it('resolveGridRowId matches the pipeline fallback for entity records', () => {
+    const entity = { id: 'entity-1', name: 'Alice' };
+    const options = { id: 'grid-1', data: [entity], columnDefs: [] };
+
+    expect(resolveGridRowId(options, entity)).toBe('grid-1-0');
   });
 
   it('preserves regex filter semantics via JS fallback when the filter operator is not wasm-serializable', () => {
@@ -73,7 +88,9 @@ describe('grid.core.wasm-bridge filtering/display helpers', () => {
       enableSorting: true,
     };
 
-    const fullPayload = inspectWasmSerializationPayload([{ options, column: options.columnDefs[0] }]);
+    const fullPayload = inspectWasmSerializationPayload([
+      { options, column: options.columnDefs[0] },
+    ]);
     const helperPayload = inspectWasmSerializationPayload([
       {
         options: {
