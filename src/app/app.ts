@@ -12,17 +12,18 @@ type VisualMode = 'default' | 'wireframe';
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     '[attr.data-color-mode]': 'colorMode()',
-    '[attr.data-visual-mode]': 'visualMode()'
-  }
+    '[attr.data-visual-mode]': 'visualMode()',
+  },
 })
 export class App {
-  protected readonly repoUrl = 'https://github.com/orneryd/uiGrid';
+  protected readonly repoUrl = 'https://github.com/orneryd/ui-grid';
   protected readonly colorMode = signal<ColorMode>('dark');
   protected readonly visualMode = signal<VisualMode>('default');
   protected readonly isDarkMode = computed(() => this.colorMode() === 'dark');
   protected readonly isWireframeMode = computed(() => this.visualMode() === 'wireframe');
-  protected readonly activeThemeName = computed(() =>
-    `${this.isWireframeMode() ? 'Wireframe' : 'Studio'} ${this.isDarkMode() ? 'dark' : 'light'}`
+  protected readonly activeThemeName = computed(
+    () =>
+      `${this.isWireframeMode() ? 'Wireframe' : 'Studio'} ${this.isDarkMode() ? 'dark' : 'light'}`,
   );
 
   protected toggleColorMode(): void {

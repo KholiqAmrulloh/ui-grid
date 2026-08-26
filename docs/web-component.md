@@ -147,7 +147,7 @@ const grid = await mountVanillaUiGrid(document.getElementById('app'), {
 });
 ```
 
-To use the optional WASM engine with the vanilla element, install and pass the compiled module published by the [Rust project](https://github.com/orneryd/uiGrid):
+To use the optional WASM engine with the vanilla element, install and pass the compiled module published by the [Rust project](https://github.com/orneryd/ui-grid):
 
 ```bash
 npm install @ornery/ui-grid-wasm
@@ -253,4 +253,4 @@ grid.options = {
 };
 ```
 
-See [orneryd/uiGrid](https://github.com/orneryd/uiGrid) for Rust implementation and native adapter documentation.
+See [orneryd/ui-grid](https://github.com/orneryd/ui-grid) for Rust implementation and native adapter documentation.
